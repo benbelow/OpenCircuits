@@ -1,7 +1,7 @@
 class GroupAction extends Action {
-    constructor() {
+    constructor(actions) {
         super();
-        this.actions = [];
+        this.actions = (actions ? actions : []);
     }
     add(action) {
         this.actions.push(action);

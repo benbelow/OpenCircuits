@@ -1,51 +1,39 @@
 class SelectionBox {
     constructor() {
-        this.selBoxDownPos = undefined;
-        this.selBoxCurPos = undefined;
+        this.downPos = undefined;
+        this.curPos = undefined;
     }
     onMouseDown(input) {
         var worldMousePos = input.worldMousePos;
-        if (!input.optionKeyDown) {
-            this.selBoxDownPos = V(worldMousePos.x, worldMousePos.y);
-            popup.hide();
-        }
+        this.downPos = V(worldMousePos.x, worldMousePos.y);
+        popup.hide();
     }
     onMouseMove(input) {
-        var objects = input.parent.getObjects();
         var worldMousePos = input.worldMousePos;
-
-        // TODO: Only calculate ON MOUSE UP!
-        if (this.selBoxDownPos != undefined) {
-            this.selBoxCurPos = V(worldMousePos.x, worldMousePos.y);
-        //     var selections = this.getSelections(objects);
-        //     if (!input.shiftKeyDown)
-        //         selectionTool.deselect(selectionTool.selections);
-        //     selectionTool.select(selections);
-            popup.hide();
-            return true;
-        }
+        this.curPos = V(worldMousePos.x, worldMousePos.y);
+        return (this.downPos != undefined);
     }
     onMouseUp(input) {
         var objects = input.parent.getObjects();
         var worldMousePos = input.worldMousePos;
 
         // Stop selection box
-        if (this.selBoxDownPos != undefined) {
-            this.selBoxCurPos = V(worldMousePos.x, worldMousePos.y);
+        if (this.downPos) {
             var selections = this.getSelections(objects);
-            if (!input.shiftKeyDown)
-                selectionTool.deselect(selectionTool.selections, true);
-                console.log(selections);
-            selectionTool.select(selections, true);
-            this.selBoxDownPos = undefined;
-            this.selBoxCurPos = undefined;
+
+            var a1 = (!input.shiftKeyDown ? selectionTool.deselect(selectionTool.selections, true) : undefined);
+            var a2 = selectionTool.select(selections, true);
+            getCurrentContext().addAction(a1 ? (a2 ? new GroupAction([a1, a2]) : a1) : a2);
+
+            this.downPos = undefined;
+            popup.update();
             return true;
         }
     }
     getSelections(objects) {
-        if (this.selBoxDownPos != undefined) {
-            var p1 = this.selBoxDownPos;
-            var p2 = this.selBoxCurPos;
+        if (this.downPos) {
+            var p1 = this.downPos;
+            var p2 = this.curPos;
             var trans = new Transform(V((p1.x+p2.x)/2, (p1.y+p2.y)/2), V(Math.abs(p2.x-p1.x), Math.abs(p2.y-p1.y)), 0, getCurrentContext().getCamera());
             var selections = [];
             for (var i = 0; i < objects.length; i++) {
@@ -73,9 +61,9 @@ class SelectionBox {
     }
     draw(renderer) {
         var camera = renderer.getCamera();
-        if (this.selBoxDownPos != undefined && this.selBoxCurPos != undefined) {
-            var pos1 = camera.getScreenPos(this.selBoxDownPos);
-            var pos2 = camera.getScreenPos(this.selBoxCurPos);
+        if (this.downPos != undefined) {
+            var pos1 = camera.getScreenPos(this.downPos);
+            var pos2 = camera.getScreenPos(this.curPos);
             var w = pos2.x - pos1.x, h = pos2.y - pos1.y;
             renderer.save();
             renderer.context.globalAlpha = 0.4;

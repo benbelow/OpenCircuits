@@ -165,9 +165,9 @@ class SelectionTool extends Tool {
 
             // Check if object's selection box was clicked
             if (obj.sContains(worldMousePos)) {
-                if (!input.shiftKeyDown)
-                    this.deselect(this.selections, true);
-                this.select([obj], true);
+                var a1 = (!input.shiftKeyDown ? this.deselect(this.selections, true) : undefined);
+                var a2 = this.select([obj], true);
+                getCurrentContext().addAction(a1 ? new GroupAction([a1, a2]) : a2);
 
                 this.sendToFront(obj);
                 return true;
@@ -194,9 +194,9 @@ class SelectionTool extends Tool {
         // Select wire
         if (this.wire != undefined) {
             this.shouldSplit = false;
-            if (!input.shiftKeyDown)
-                this.deselect(this.selections, true);
-            this.select([this.wire], true);
+            var a1 = (!input.shiftKeyDown ? this.deselect(this.selections, true) : undefined);
+            var a2 = this.select([this.wire], true);
+            getCurrentContext().addAction(a1 ? new GroupAction([a1, a2]) : a2);
             this.wire = undefined;
             return true;
         }
@@ -204,7 +204,7 @@ class SelectionTool extends Tool {
         // Didn't click on anything so deselect everything
         // And add a deselect action
         if (!input.shiftKeyDown && this.selections.length > 0) {
-            this.deselect(this.selections, true);
+            // getCurrentContext().addAction(this.deselect(this.selections, true));
             return true;
         }
     }
@@ -233,10 +233,10 @@ class SelectionTool extends Tool {
             if (doAction)
                 action.add(new SelectAction(obj));
         }
-        if (doAction)
-            getCurrentContext().addAction(action);
         popup.update();
         this.recalculateMidpoint();
+        if (doAction)
+            return action;
     }
     deselect(objects, doAction) {
         if (objects.length === 0)
@@ -252,10 +252,10 @@ class SelectionTool extends Tool {
             if (doAction)
                 action.add(new SelectAction(obj, true));
         }
-        if (doAction)
-            getCurrentContext().addAction(action);
         popup.update();
         this.recalculateMidpoint();
+        if (doAction)
+            return action;
     }
     removeSelections() {
         if (this.selections.length === 0)
